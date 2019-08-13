@@ -1,68 +1,88 @@
 import React from 'react';
-import styled, { keyframes } from 'styled-components';
-import hasBlockStack from './components/hasBlockstack';
-import logo from './logo.svg';
-import { BlockstackNamespace } from 'blockstack/lib/operations/skeletons';
+import {
+  UserSession,
+  AppConfig,
+} from 'blockstack';
+import S from 'sanctuary';
+import { Grommet, Box, Button, Text, Heading } from 'grommet';
+import { Login, Logout } from 'grommet-icons';
 
-const AppWrapper = styled.div`
-  text-align: center;
-`;
+import { createGlobalStyle } from 'styled-components';
+import reset from 'styled-reset';
 
-const AppLogoSpin = keyframes `
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-`;
+import AppBar from './components/AppBar';
+import { browserHistory as history } from './index';
+import reducer from './reducer';
+import { StateProvider } from './StoreContext';
 
-const AppLogo = styled.img`
-  animation: ${AppLogoSpin} infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
-`;
+const ResetStyles = createGlobalStyle `
+  ${reset}
+`
 
-const AppLink = styled.a `
-  color: #61dafb;
-`;
-
-const AppHeader = styled.header`
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-`;
+const theme = {
+  global: {
+    font: {
+      family: 'Roboto',
+      size: '14px',
+      height: '20px',
+    },
+  },
+};
 
 class App extends React.PureComponent {
-
-  componentDidMount () {
-    this.props.blockstack.redirectToSignIn();
+  constructor() {
+    super ();
+    this.appConfig = new AppConfig(['store_write', 'publish_data']);
+    window.__US = this.userSession;
+    this.state = {
+      userSession: new UserSession ({ appConfig: this.appConfig }),
+      userData: S.Nothing,
+      user: S.Nothing,
+      files: S.Nothing,
+    }
   }
+
+  componentDidMount = async () => {
+    const { userSession } = this.state;
+
+    if (userSession.isSignInPending()) {
+      const userData = await userSession.handlePendingSignIn();
+      const files = await userSession.listFiles(console.log);
+      const user = await userSession.loadUserData ();
+      this.setState({ userData: S.Just (userData), user: S.Just (user), files: S.Just (files) }, () => history.push ('/notes'));
+    }
+  }
+
+  handleSignIn = (e) => {
+    e.preventDefault();
+    this.state.userSession.redirectToSignIn ();
+  }
+
+  handleSignOut = (e) => {
+    e.preventDefault();
+    this.state.userSession.signUserOut(window.location.origin);
+  }
+
   render () {
+    const { userSession } = this.state;
     return (
-      <AppWrapper>
-        <AppHeader>
-          <AppLogo src={logo} alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <AppLink
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </AppLink>
-        </AppHeader>
-      </AppWrapper>
+      <StateProvider reducer={reducer} initialState={{ notes: [] }}>
+        <Grommet theme={theme}>
+          <ResetStyles />
+          <AppBar>
+            <Text>My Notes</Text>
+            {userSession.isUserSignedIn () ? 
+              <Button onClick={this.handleSign} icon={<Logout/>} primary label="Sign Out"/> :
+              <Button onClick={this.handleSignIn} icon={<Login/>} primary label="Sign In"/>
+            }
+          </AppBar>
+          <Box direction='column' pad='large' align='center' animation='fadeIn'>
+            {React.cloneElement (this.props.children, { ...this.state })}
+          </Box>
+        </Grommet>
+      </StateProvider>
     );
   }
 }
 
-export default hasBlockStack (App);
+export default App;
