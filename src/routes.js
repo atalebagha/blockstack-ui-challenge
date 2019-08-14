@@ -1,6 +1,7 @@
 import React from 'react';
 import Home from './components/Home';
 import NoteList from './components/NotesList';
+import NoteDetails from './components/NoteDetails';
 
 const routes = [
   {
@@ -17,7 +18,7 @@ const routes = [
       },
       {
         path: '/:id',
-        action: (context) => <h1>Post #{context.params.id}</h1>,
+        action: (context) => <NoteDetails {...context.params} />,
       },
     ],
   },
