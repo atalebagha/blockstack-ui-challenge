@@ -33,7 +33,7 @@ const useDebounce = value => delay => {
 const NoteDetails = props => {
   const [{ notes }, dispatch] = useStateValue ();
   const [note, setNote] = useState (S.Nothing);
-  const debouncedNote= useDebounce (note) (1000);
+  const debouncedNote = useDebounce (note) (1000);
 
   // on-mount set note to state
   useEffect (() => {
@@ -41,7 +41,7 @@ const NoteDetails = props => {
       const thisNote = S.find (n => n.id === props.id) (notes);
       setNote (thisNote);
       const payload =
-        S.map (n => n.id === props.id ? S.fromMaybe ({}) (thisNote): n) (notes);
+        S.map (n => n.id === props.id ? S.fromMaybe ({}) (thisNote) : n) (notes);
       dispatch ({ type: 'LOAD_NOTES', payload })
     }
   }, []); // eslint-disable-line
