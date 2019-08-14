@@ -32,34 +32,33 @@ const theme = {
 class App extends React.PureComponent {
   constructor() {
     super ();
-    this.appConfig = new AppConfig(['store_write', 'publish_data']);
-    window.__US = this.userSession;
+    const appConfig = new AppConfig(['store_write', 'publish_data']);
     this.state = {
-      userSession: new UserSession ({ appConfig: this.appConfig }),
+      userSession: new UserSession ({ appConfig }),
       userData: S.Nothing,
       user: S.Nothing,
-      files: S.Nothing,
     }
   }
 
   componentDidMount = async () => {
     const { userSession } = this.state;
 
-    if (userSession.isSignInPending()) {
+    if (!userSession.isUserSignedIn() && userSession.isSignInPending()) {
       const userData = await userSession.handlePendingSignIn();
-      const files = await userSession.listFiles(console.log);
       const user = await userSession.loadUserData ();
-      this.setState({ userData: S.Just (userData), user: S.Just (user), files: S.Just (files) }, () => history.push ('/notes'));
+      this.setState({ userData: S.Just (userData), user: S.Just (user) }, () => history.push ('/notes'));
+    } else {
+
     }
   }
 
   handleSignIn = (e) => {
-    e.preventDefault();
+    e && e.preventDefault();
     this.state.userSession.redirectToSignIn ();
   }
 
   handleSignOut = (e) => {
-    e.preventDefault();
+    e && e.preventDefault();
     this.state.userSession.signUserOut(window.location.origin);
   }
 

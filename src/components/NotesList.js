@@ -3,26 +3,30 @@ import {
   Box,
   Button,
   DataTable,
-  Text
+  Text,
+  Anchor,
 } from 'grommet';
 import S from 'sanctuary';
 
 import {useStateValue} from '../StoreContext';
+import {browserHistory as history} from '../index';
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
           .replace(/[xy]/g,
                    (c) => {
                      const r = Math.random() * 16 | 0;
-                     const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                     const v = c === 'x' ? r : (r && 0x3 | 0x8);
                      return v.toString(16);
                    });
 }
 
-const NoteList = props => {
+const NotesList = props => {
   const [{ notes }, dispatch] = useStateValue();
+  const [disabled, disableBtn] = useState (false)
 
 const createNote = async (e) => {
+  disableBtn(S.K (true))
   e.preventDefault();
   const id = generateUUID();
   const createdAt = new Date ().toISOString ();
@@ -35,14 +39,12 @@ const createNote = async (e) => {
     note: '',
   }
 
-  console.log ([params]);
-
   try {
-    const username = S.maybe ('') (S.prop ('username')) (props.user);
-    const finalNotes = notes ? notes : [];
-    const updatedNotes = await props.userSession.putFile('notes.json', JSON.stringify([...finalNotes, params]), { username });
-    console.log (updatedNotes);
-    dispatch ({ type: 'LOAD_NOTES', payload: [...finalNotes, params] });
+    // const username = S.maybe ('') (S.prop ('username')) (props.user);
+    const finalNotes = S.append (params) (notes);
+    const updatedNotes = await props.userSession.putFile('notes.json', JSON.stringify(finalNotes), { encrypt: false });
+    dispatch ({ type: 'LOAD_NOTES', payload: finalNotes });
+    disableBtn(S.K (false))
   } catch (e) {
     console.error(e)
   }
@@ -54,24 +56,24 @@ const createNote = async (e) => {
           const username = S.maybe ('') (S.prop ('username')) (props.user);
           const notesJson = await props.userSession.getFile ('notes.json', { username });
           const final = JSON.parse (notesJson);
-          dispatch ({ type: 'LOAD_NOTES', payload: final });
+          return final;
         } catch (err) {
           console.error (err);
         }
       }
-      getNotes ();
+      getNotes ().then (payload => dispatch ({ type: 'LOAD_NOTES', payload }));
     }
-  }, [notes]); // eslint-disable-line
-  console.log (notes);
+  }); // eslint-disable-line
   return (
     <Box>
-      <Button onClick={createNote} secondary label='Create Note' />
+      <Button onClick={createNote} disable={disabled} secondary label='Create Note' />
       <DataTable
         columns={[
           {
             property: 'id',
             header: <Text>ID</Text>,
             primary: true,
+            render: d => <Anchor onClick={() => history.push ('/notes/' + d.id)}>{d.id}</Anchor>
           },
           {
             property: 'title',
@@ -89,4 +91,4 @@ const createNote = async (e) => {
   )
 };
 
-export default NoteList;
+export default NotesList;
