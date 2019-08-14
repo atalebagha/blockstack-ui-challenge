@@ -25,30 +25,30 @@ const NotesList = props => {
   const [{ notes }, dispatch] = useStateValue();
   const [disabled, disableBtn] = useState (false)
 
-const createNote = async (e) => {
-  disableBtn(S.K (true))
-  e.preventDefault();
-  const id = generateUUID();
-  const createdAt = new Date ().toISOString ();
+  const createNote = async (e) => {
+    disableBtn(S.K (true))
+    e.preventDefault();
+    const id = generateUUID();
+    const createdAt = new Date ().toISOString ();
 
-  // for posts.json
-  const params = {
-    id,
-    createdAt,
-    title: '',
-    note: '',
-  }
+    // for posts.json
+    const params = {
+      id,
+      createdAt,
+      title: '',
+      note: '',
+    }
 
-  try {
-    // const username = S.maybe ('') (S.prop ('username')) (props.user);
-    const finalNotes = S.append (params) (notes);
-    await props.userSession.putFile('notes.json', JSON.stringify(finalNotes), { encrypt: false });
-    dispatch ({ type: 'LOAD_NOTES', payload: finalNotes });
-    disableBtn(S.K (false))
-  } catch (e) {
-    console.error(e)
+    try {
+      // const username = S.maybe ('') (S.prop ('username')) (props.user);
+      const finalNotes = S.append (params) (notes);
+      await props.userSession.putFile('notes.json', JSON.stringify(finalNotes), { encrypt: false });
+      dispatch ({ type: 'LOAD_NOTES', payload: finalNotes });
+      disableBtn(S.K (false))
+    } catch (e) {
+      console.error(e)
+    }
   }
-}
   useEffect(() => {
     if (!notes) {
       async function getNotes() {
