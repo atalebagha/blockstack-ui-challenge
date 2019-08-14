@@ -42,7 +42,7 @@ const createNote = async (e) => {
   try {
     // const username = S.maybe ('') (S.prop ('username')) (props.user);
     const finalNotes = S.append (params) (notes);
-    const updatedNotes = await props.userSession.putFile('notes.json', JSON.stringify(finalNotes), { encrypt: false });
+    await props.userSession.putFile('notes.json', JSON.stringify(finalNotes), { encrypt: false });
     dispatch ({ type: 'LOAD_NOTES', payload: finalNotes });
     disableBtn(S.K (false))
   } catch (e) {

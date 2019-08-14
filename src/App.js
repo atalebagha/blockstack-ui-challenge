@@ -4,7 +4,7 @@ import {
   AppConfig,
 } from 'blockstack';
 import S from 'sanctuary';
-import { Grommet, Box, Button, Text, Heading } from 'grommet';
+import { Grommet, Box, Button, Text } from 'grommet';
 import { Login, Logout } from 'grommet-icons';
 
 import { createGlobalStyle } from 'styled-components';
